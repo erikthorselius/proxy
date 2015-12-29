@@ -1,0 +1,17 @@
+[Unit]
+Description=Run zeromq proxy
+Requires=docker.service
+
+[Service]
+Restart=always
+RestartSec=60s
+ExecStartPre=-/usr/bin/docker kill proxy
+ExecStartPre=-/usr/bin/docker rm proxy
+ExecStartPre=/usr/bin/docker pull regius/proxy
+ExecStart=/usr/bin/docker run --rm --name proxy \
+  -p 7555:7555 -p 7556:7556 -p 7557:7557 \
+	regius/proxy
+ExecStop=/usr/bin/docker stop proxy
+
+[Install]
+WantedBy=local.target
