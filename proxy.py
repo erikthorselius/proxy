@@ -45,7 +45,8 @@ def log_health_checks(ctx):
     health_check_socket.setsockopt_string(zmq.SUBSCRIBE, "health_check")
     health_check_socket.connect('tcp://127.0.0.1:7555')
     while True:
-        health_check_socket.recv_multipart()
+        topic, messagedata = health_check_socket.recv_multipart()
+        logging.info('Recived %s', topic + " " + messagedata)
 
 
 if __name__ == '__main__':
