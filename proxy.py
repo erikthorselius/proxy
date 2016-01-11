@@ -26,12 +26,12 @@ def mon(ctx):
     pull.connect("tcp://127.0.0.1:7557")
     while True:
         topic, messagedata = pull.recv_multipart()
-        logging.info('Recived %s %s', topic, messagedata)
+        logging.info('Recived %s', topic + " " + messagedata)
 
 
 def health_check_job(sc, socket):
     socket.send_multipart([b'health_check', bytes(json.dumps({'type': 'health_check', 'id': 'proxy'}), 'utf8')])
-    sc.enter(1, 1, health_check_job, (sc, socket))
+    sc.enter(10, 1, health_check_job, (sc, socket))
 
 
 def add_health_check(ctx):
@@ -45,7 +45,8 @@ def log_health_checks(ctx):
     health_check_socket.setsockopt_string(zmq.SUBSCRIBE, "health_check")
     health_check_socket.connect('tcp://127.0.0.1:7555')
     while True:
-        topic, messagedata = health_check_socket.recv_multipart()
+        health_check_socket.recv_multipart()
+
 
 if __name__ == '__main__':
     ctx = zmq.Context()
@@ -56,7 +57,6 @@ if __name__ == '__main__':
     log = threading.Thread(target=log_health_checks, args=(ctx,))
     log.start()
     add_health_check(ctx)
-
     try:
         s.run()
     except KeyboardInterrupt:
