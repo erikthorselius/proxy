@@ -40,12 +40,22 @@ def add_health_check(ctx):
     s.enter(1, 1, health_check_job, (s, health_check_socket))
 
 
+def log_health_checks(ctx):
+    health_check_socket = ctx.socket(zmq.SUB)
+    health_check_socket.setsockopt_string(zmq.SUBSCRIBE, "health_check")
+    health_check_socket.connect('tcp://127.0.0.1:7555')
+    while True:
+        topic, messagedata = health_check_socket.recv_multipart()
+        logging.info('Recived %s %s', topic, messagedata)
+
 if __name__ == '__main__':
     ctx = zmq.Context()
     proxy = threading.Thread(target=proxy, args=(ctx,))
     proxy.start()
     mon = threading.Thread(target=mon, args=(ctx,))
     mon.start()
+    log = threading.Thread(target=log_health_checks, args=(ctx,))
+    log.start()
     add_health_check(ctx)
 
     try:
