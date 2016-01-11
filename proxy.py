@@ -25,8 +25,8 @@ def mon(ctx):
     pull = ctx.socket(zmq.PULL)
     pull.connect("tcp://127.0.0.1:7557")
     while True:
-        msg = pull.recv();
-        logging.info('Recived %s', msg)
+        topic, messagedata = pull.recv_multipart()
+        logging.info('Recived %s %s', topic, messagedata)
 
 
 def health_check_job(sc, socket):
@@ -46,7 +46,6 @@ def log_health_checks(ctx):
     health_check_socket.connect('tcp://127.0.0.1:7555')
     while True:
         topic, messagedata = health_check_socket.recv_multipart()
-        logging.info('Recived %s %s', topic, messagedata)
 
 if __name__ == '__main__':
     ctx = zmq.Context()
