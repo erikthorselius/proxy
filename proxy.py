@@ -1,4 +1,4 @@
-import zmq, logging, threading, sched, json, time
+import zmq, logging, threading, sched, json, time,os
 
 xpub_url = "tcp://*:7555"
 xsub_url = "tcp://*:7556"
@@ -6,7 +6,7 @@ mon_url = "tcp://*:7557"
 
 s = sched.scheduler(time.time, time.sleep)
 logging.basicConfig(format='%(asctime)s %(message)s', level=logging.DEBUG)
-
+print_heart_beat = os.getenv('PRINT_HEART_BEAT', False)
 
 def proxy(ctx):
     xpub = ctx.socket(zmq.XPUB)
@@ -49,7 +49,7 @@ def log_health_checks(ctx):
     health_check_socket.connect('tcp://127.0.0.1:7555')
     while True:
         topic, messagedata = health_check_socket.recv_multipart()
-        #logging.info('Recived %s', str(topic) + " " + str(messagedata))
+        logging.info('Recived %s', str(topic) + " " + str(messagedata))
 
 
 if __name__ == '__main__':
@@ -58,8 +58,9 @@ if __name__ == '__main__':
     proxy.start()
     mon = threading.Thread(target=mon, args=(ctx,))
     mon.start()
-    log = threading.Thread(target=log_health_checks, args=(ctx,))
-    log.start()
+    if(print_heart_beat):
+        log = threading.Thread(target=log_health_checks, args=(ctx,))
+        log.start()
     add_health_check(ctx)
     try:
         s.run()
